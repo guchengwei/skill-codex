@@ -7,7 +7,7 @@ description: Use when the user asks to run Codex CLI (codex exec, codex resume) 
 
 ## Running a Task
 1. Ask the user (via `AskUserQuestion`) which model to run (`gpt-5.4`, `gpt-5.3-codex-spark`, or `gpt-5.3-codex`) AND which reasoning effort to use (`xhigh`, `high`, `medium`, or `low`) in a **single prompt with two questions**.
-2. Select the sandbox mode required for the task; default to `--sandbox read-only` unless edits or network access are necessary.
+2. Select the sandbox mode required for the task; default to `--sandbox read-only` unless edits or network access are necessary. **If running inside a container (dev container, Docker, etc.) where bwrap fails with "No permissions to create a new namespace", append `--dangerously-bypass-approvals-and-sandbox` to bypass the sandbox. This is safe when the environment is already externally sandboxed.**
 3. Assemble the command with the appropriate options:
    - `-m, --model <MODEL>`
    - `--config model_reasoning_effort="<xhigh|high|medium|low>"`
@@ -30,6 +30,7 @@ description: Use when the user asks to run Codex CLI (codex exec, codex resume) 
 | Permit network or broad access | `danger-full-access` | `--sandbox danger-full-access --full-auto 2>/dev/null` |
 | Resume recent session | Inherited from original | `echo "prompt" \| codex exec --skip-git-repo-check resume --last 2>/dev/null` (no flags allowed) |
 | Run from another directory | Match task needs | `-C <DIR>` plus other flags `2>/dev/null` |
+| Container environment (bwrap blocked) | any | add `--dangerously-bypass-approvals-and-sandbox` (mutually exclusive with `--full-auto`) |
 
 ## Following Up
 - After every `codex` command, immediately use `AskUserQuestion` to confirm next steps, collect clarifications, or decide whether to resume with `codex exec resume --last`.
