@@ -1,5 +1,7 @@
 Note: If you want a more autonomous setup for agentic workflows, check out [klaudworks/ralph-meets-rex](https://github.com/klaudworks/ralph-meets-rex).
 
+> **Fork note:** This is a fork of [skills-directory/skill-codex](https://github.com/skills-directory/skill-codex) with an added fix for containerized environments (dev containers, Docker) where AppArmor blocks bwrap user namespace creation. See the [Container/Sandbox Bypass](#containersandbox-bypass) section below.
+
 # Codex Integration for Claude Code
 
 <img width="2288" height="808" alt="skillcodex" src="https://github.com/user-attachments/assets/85336a9f-4680-479e-b3fe-d6a68cadc051" />
@@ -22,8 +24,21 @@ This repository is structured as a [Claude Code Plugin](https://code.claude.com/
 Install via Claude Code's plugin system for automatic updates:
 
 ```
-/plugin marketplace add skills-directory/skill-codex
+/plugin marketplace add guchengwei/skill-codex
 /plugin install skill-codex@skill-codex
+```
+
+Or add to your `~/.claude/settings.json`:
+
+```json
+"extraKnownMarketplaces": {
+  "skill-codex": {
+    "source": {
+      "source": "github",
+      "repo": "guchengwei/skill-codex"
+    }
+  }
+}
 ```
 
 ### Option 2: Standalone Skill Installation
@@ -31,11 +46,27 @@ Install via Claude Code's plugin system for automatic updates:
 Extract the skill folder manually:
 
 ```
-git clone --depth 1 git@github.com:skills-directory/skill-codex.git /tmp/skills-temp && \
+git clone --depth 1 https://github.com/guchengwei/skill-codex.git /tmp/skills-temp && \
 mkdir -p ~/.claude/skills && \
 cp -r /tmp/skills-temp/plugins/skill-codex/skills/codex ~/.claude/skills/codex && \
 rm -rf /tmp/skills-temp
 ```
+
+## Container/Sandbox Bypass
+
+If you're running inside a dev container or Docker where the host kernel has `apparmor_restrict_unprivileged_userns=1`, bwrap will fail with:
+
+```
+No permissions to create a new namespace
+```
+
+**Fix:** use `--dangerously-bypass-approvals-and-sandbox` instead of `--full-auto`:
+
+```bash
+codex exec -m <model> -s danger-full-access --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check -C <dir> "prompt" 2>/dev/null
+```
+
+> Note: `--dangerously-bypass-approvals-and-sandbox` is mutually exclusive with `--full-auto`. This is safe when you're already inside an externally-sandboxed container.
 
 ## Usage
 
